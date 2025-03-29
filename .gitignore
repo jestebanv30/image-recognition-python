@@ -1,0 +1,34 @@
+# Ignorar la carpeta del entorno virtual
+venv/
+
+# Ignorar archivos de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar imágenes y archivos generados automáticamente
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# Ignorar dependencias si las manejas con un archivo de requerimientos
+dependencies.txt
+
+# Ignorar configuraciones del entorno
+.env
+.DS_Store  # MacOS
+Thumbs.db  # Windows
+
+# Ignorar archivos de logs
+logs/
+*.log
+
+# Ignorar archivos de compilación o binarios
+build/
+dist/
+*.egg-info/
+
+# Ignorar archivos de VS Code
+.vscode/
