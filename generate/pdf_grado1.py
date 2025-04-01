@@ -8,8 +8,8 @@ def draw_reference_markers(c, x, y, width, height):
     
     # Dibuja marcadores cuadrados en los bordes de la hoja
     
-    marker_size = 20  # Tamaño del cuadrado
-    margin = 10  # Margen para separar los marcadores de la imagen
+    marker_size = 20  # Tamaño del cuadrado aumentado a 30
+    margin = 10  # Margen aumentado para separar más los marcadores
     
     # Dibuja los cuadrados negros en los bordes
     c.setFillColorRGB(0, 0, 0)
@@ -24,7 +24,20 @@ def draw_reference_markers(c, x, y, width, height):
     c.rect(x + width + margin, y + height/2 - marker_size/2, marker_size, marker_size, stroke=0, fill=1)  # Medio
     c.rect(x + width + margin, y + height - marker_size, marker_size, marker_size, stroke=0, fill=1)  # Superior
 
-def generate_exam_pdf(student_name, identification, institution, output_pdf, answer_sheet_img, logo_img):
+def draw_qr_markers(c, x, y, width, height):
+    # Dibuja marcadores cuadrados en las esquinas del QR
+    marker_size = 15
+    margin = 5
+    
+    c.setFillColorRGB(0, 0, 0)
+    
+    # Esquinas
+    c.rect(x - marker_size - margin, y - marker_size - margin, marker_size, marker_size, stroke=0, fill=1)  # Inferior izquierda
+    c.rect(x + width + margin, y - marker_size - margin, marker_size, marker_size, stroke=0, fill=1)  # Inferior derecha
+    c.rect(x - marker_size - margin, y + height + margin, marker_size, marker_size, stroke=0, fill=1)  # Superior izquierda
+    c.rect(x + width + margin, y + height + margin, marker_size, marker_size, stroke=0, fill=1)  # Superior derecha
+
+def generate_exam_pdf(student_name, identification, grado, curso, institution, output_pdf, answer_sheet_img, logo_img):
     # Verificar si existe el directorio assets
     if logo_img and not os.path.exists(os.path.dirname(logo_img)):
         print(f"El directorio {os.path.dirname(logo_img)} no existe")
@@ -42,9 +55,9 @@ def generate_exam_pdf(student_name, identification, institution, output_pdf, ans
         try:
             logo = ImageReader(logo_img)
             # Ajustamos el tamaño manteniendo la proporción original
-            logo_width = 120  # Reducimos el ancho para que sea más compacto
-            logo_height = logo_width * (207/607)  # Mantenemos la proporción original
-            c.drawImage(logo, 60, height - 80, width=logo_width, height=logo_height, mask='auto')
+            logo_width = 90  # Reducimos el ancho para que sea más compacto
+            logo_height = logo_width * (500/500)  # Mantenemos la proporción original
+            c.drawImage(logo, 60, height - 115, width=logo_width, height=logo_height, mask='auto')
         except Exception as e:
             print(f"No se pudo cargar el logo: {e}")
     
@@ -55,8 +68,8 @@ def generate_exam_pdf(student_name, identification, institution, output_pdf, ans
     c.setFont("Helvetica", 12)
     c.drawCentredString(text_x, height - 65, institution)
     c.setFont("Helvetica", 10)
-    c.drawCentredString(text_x, height - 80, "Simulacro Saber 11")
-    c.drawCentredString(text_x, height - 95, "Marzo 26 de 2025")
+    c.drawCentredString(text_x, height - 80, f"Simulacro Saber {grado}° Curso {curso}")
+    c.drawCentredString(text_x, height - 95, f"Abril 2 de 2025")
 
     # Agregar nombre e identificación del estudiante
     c.setFont("Helvetica", 12)
@@ -70,27 +83,40 @@ def generate_exam_pdf(student_name, identification, institution, output_pdf, ans
     c.drawString(200, height - 170, str(identification).upper() if identification else "NO PROPORCIONADA")
     
     # Generar código QR
-    qr_data = f"Nombre: {student_name}, Institución: {institution}, Identificación: {identification}"
+    qr_data = f"Nombre: {student_name}, Institución: {institution}, Identificación: {identification}, Grado: {grado}, Curso: {curso}"
     qr = qrcode.make(qr_data)
     temp_qr = "temp_qr.png"
     qr.save(temp_qr)
     qr_img = ImageReader(temp_qr)
-    c.drawImage(qr_img, width - 140, height - 110, width=80, height=80)
+    
+    # Ubicar QR en el centro de la página
+    qr_width = 90  # Reducido el tamaño del QR
+    qr_height = 90
+    qr_x = (width - qr_width) / 2  # Centrado horizontalmente
+    qr_y = height - 310  # Ubicado debajo de la información del estudiante
+    c.drawImage(qr_img, qr_x, qr_y, width=qr_width, height=qr_height)
+    
+    # Agregar marcadores alrededor del QR
+    draw_qr_markers(c, qr_x, qr_y, qr_width, qr_height)
     
     # Agregar imagen de la hoja de respuestas si existe
     if os.path.exists(answer_sheet_img):
         try:
             answer_sheet = ImageReader(answer_sheet_img)
             # Ajustamos el tamaño manteniendo la proporción original
-            sheet_width = 520  # Reducimos el ancho para dejar espacio a los marcadores
-            sheet_height = sheet_width * (632/722)  # Altura proporcional
-            x_centered = (width - sheet_width) / 2
+            sheet_width = 520  # Ancho de la hoja de respuestas
+            sheet_height = sheet_width * (627/938)  # Altura proporcional
             
-            # Dibujar la hoja de respuestas
-            c.drawImage(answer_sheet, x_centered, 80, width=sheet_width, height=sheet_height)
+            # Calcular coordenadas para centrar la hoja más abajo
+            espacio_disponible_vertical = height - 280  # Aumentado el espacio superior
+            y_centered = ((espacio_disponible_vertical - sheet_height) / 2)  # Ajustado para bajar más
+            x_centered = (width - sheet_width) / 2  # Centrado horizontal
+            
+            # Dibujar la hoja de respuestas centrada
+            c.drawImage(answer_sheet, x_centered, y_centered, width=sheet_width, height=sheet_height)
             
             # Dibujar marcadores de referencia por fuera de la imagen
-            draw_reference_markers(c, x_centered, 80, sheet_width, sheet_height)
+            draw_reference_markers(c, x_centered, y_centered, sheet_width, sheet_height)
             
         except Exception as e:
             print(f"No se pudo cargar la hoja de respuestas: {e}")
@@ -108,16 +134,18 @@ def generate_exam_pdf(student_name, identification, institution, output_pdf, ans
 
 # Lista de estudiantes con sus identificaciones
 estudiantes = [
-    ("Juan Esteban Valdes", "1065564276"),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 1, 1),
 ]
 
 # Generar PDF para cada estudiante
-for nombre, identificacion in estudiantes:
+for nombre, identificacion, grado, curso in estudiantes:
     generate_exam_pdf(
         nombre,
         identificacion,
-        "Universidad Popular del Cesar", 
+        grado,
+        curso,
+        "Institución Educativa El Carmelo", 
         f"prueba-saber-{identificacion}.pdf",
-        "C:/Users/valde/Desktop/image-recognition/assets/formato-preguntas2.jpg",
-        "C:/Users/valde/Desktop/image-recognition/assets/LOGO-UPC-VERDE-2.png"
+        "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-1.jpg",
+        "C:/Users/valde/Desktop/image-recognition/assets/logo-carmelita.png"
     )

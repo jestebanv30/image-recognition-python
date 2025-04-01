@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import os
-from image_recognition_v1 import procesar_hoja_respuestas
 
 def detectar_marcadores_referencia(imagen):
     """

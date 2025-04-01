@@ -13,7 +13,7 @@ def plot_image(img, titulo="Imagen", grayscale=True):
         print(f"Error al mostrar la imagen: {str(e)}")
 
 # ruta_imagen = "C:/Users/valde/Desktop/image-recognition/assets/prueba-tipo-ifces.jpg"
-ruta_imagen = "C:/Users/valde/Desktop/image-recognition/assets/examen-marcadores-error1.jpg"
+ruta_imagen = "C:/Users/valde/Desktop/image-recognition/assets/image.png"
 
 # Obtener la región de interés usando reconocimiento_marcadores
 roi_estandarizada = procesar_imagen_con_marcadores(ruta_imagen, mostrar_resultados=False)
@@ -33,7 +33,7 @@ if roi_estandarizada is not None:
         minDist=10,  # Aumentada distancia mínima
         param1=50,
         param2=20,  # Reducido para detectar más círculos
-        minRadius=5,  # Reducido radio mínimo
+        minRadius=6,  # Reducido radio mínimo
         maxRadius=12  # Aumentado radio máximo
     )
     
