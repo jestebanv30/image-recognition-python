@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from pyzbar.pyzbar import decode
-from reconocimiento_marcadores import procesar_imagen_con_marcadores, detectar_qr_con_marcadores
+from recognition.reconocimiento_marcadores import procesar_qr_con_marcadores
 
 def plot_image(img, titulo="Imagen", grayscale=True):
     try:
@@ -15,25 +15,17 @@ def plot_image(img, titulo="Imagen", grayscale=True):
 
 def leer_qr_desde_imagen(ruta_imagen):
     try:
-        # Procesar imagen usando los marcadores de referencia
-        img = cv2.imread(ruta_imagen)
-        if img is None:
-            raise Exception("No se pudo cargar la imagen")
+        # Obtener la región de interés usando reconocimiento_marcadores
+        roi_estandarizada = procesar_qr_con_marcadores(ruta_imagen, mostrar_resultados=False)
 
-        plot_image(img, "0. Imagen original", False)
-
-        # Detectar región del QR usando los marcadores
-        region_qr = detectar_qr_con_marcadores(img)
-        if region_qr is None:
+        if roi_estandarizada is None:
             print("No se pudo detectar la región del QR.")
             return None
-            
-        x, y, w, h = region_qr
-        qr_roi = img[y:y+h, x:x+w]
-        plot_image(qr_roi, "5. Región del QR", False)
+
+        plot_image(roi_estandarizada, "Región del QR", False)
 
         # Decodificar QR
-        codigos_qr = decode(qr_roi)
+        codigos_qr = decode(roi_estandarizada)
         
         if not codigos_qr:
             print("No se encontró ningún código QR en la región detectada.")

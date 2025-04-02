@@ -30,13 +30,7 @@ def cargar_imagen(ruta):
         print(f"Error al cargar la imagen: {str(e)}")
         return None
 
-def detectar_qr_con_marcadores(ruta_imagen):
-    # Cargar imagen primero
-    img = cargar_imagen(ruta_imagen)
-    if img is None:
-        print("No se pudo cargar la imagen")
-        return
-        
+def detectar_qr_con_marcadores(img):
     # Convertir a escala de grises
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     plot_image(gray, "1. Imagen en escala de grises")
@@ -127,18 +121,52 @@ def detectar_qr_con_marcadores(ruta_imagen):
         y_min = min(m[1] for m in marcadores_validos)
         y_max = max(m[1] + m[3] for m in marcadores_validos)
         
-        # Extraer región del QR
-        qr_region = img[y_min:y_max, x_min:x_max]
-        
-        # Mostrar región del QR detectada
-        img_qr = img.copy()
-        cv2.rectangle(img_qr, (x_min,y_min), (x_max,y_max), (255,0,0), 2)
-        plot_image(img_qr, "6. Región del QR detectada", False)
-        plot_image(qr_region, "7. QR extraído", False)
-        
-        return qr_region
+        return (x_min, y_min, x_max - x_min, y_max - y_min)
     else:
         print("No se encontraron 4 marcadores que formen un cuadrado")
+        return None
+
+def procesar_qr_con_marcadores(ruta_imagen, mostrar_resultados=True):
+    img = cargar_imagen(ruta_imagen)
+    
+    if img is not None:
+        plot_image(img, "0. Imagen original", False)
+        # Detectar región del QR
+        region = detectar_qr_con_marcadores(img)
+        
+        if region:
+            x, y, w, h = region
+            # Extraer región de interés
+            roi = img[y:y+h, x:x+w]
+            
+            # Dimensiones estándar deseadas - aumentadas para mejor resolución
+            ancho_estandar = 400  # Aumentado de 150 a 400 para mejor resolución
+            # Mantener la relación de aspecto
+            relacion_aspecto = h / w
+            alto_estandar = int(ancho_estandar * relacion_aspecto)
+            
+            # Redimensionar usando INTER_CUBIC para mejor calidad
+            roi_estandarizada = cv2.resize(roi, (ancho_estandar, alto_estandar), 
+                                         interpolation=cv2.INTER_CUBIC)
+            
+            # Aplicar mejora de nitidez
+            kernel_sharpening = np.array([[-1,-1,-1], 
+                                        [-1, 9,-1],
+                                        [-1,-1,-1]])
+            roi_estandarizada = cv2.filter2D(roi_estandarizada, -1, kernel_sharpening)
+            
+            if mostrar_resultados:
+                # Mostrar resultados
+                cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
+                plot_image(img, "6. Imagen con región QR detectada", False)
+                plot_image(roi_estandarizada, "7. Región QR estandarizada", False)
+            
+            return roi_estandarizada
+        else:
+            print("No se detectaron suficientes marcadores para el QR")
+            return None
+    else:
+        print("Error: No se pudo cargar la imagen")
         return None
 
 def detectar_marcadores(img):
@@ -255,9 +283,117 @@ def procesar_imagen_con_marcadores(ruta_imagen, mostrar_resultados=True):
         print("Error: No se pudo cargar la imagen")
         return None
 
+def detectar_marcadores_codigo_barras(img, mostrar=True):
+    # Convertir a escala de grises
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    plot_image(gray, "1. Imagen en escala de grises")
+    
+    # Umbralización adaptativa
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                 cv2.THRESH_BINARY_INV, 11, 2)
+    plot_image(thresh, "2. Umbralización adaptativa")
+    
+    # Limpiar ruido
+    kernel = np.ones((3,3), np.uint8)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    plot_image(thresh, "3. Limpieza de ruido")
+
+    # Encontrar contornos
+    contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    
+    height, width = img.shape[:2]
+    area_imagen = height * width
+    marcadores = []
+
+    # Detectar marcadores cuadrados
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        if area_imagen * 0.0001 < area < area_imagen * 0.01:  # Ajustado el rango de área
+            x, y, w, h = cv2.boundingRect(cnt)
+            ratio = w / h
+            if 0.8 <= ratio <= 1.2:  # Debe ser aproximadamente cuadrado
+                roi = gray[y:y+h, x:x+w]
+                if np.mean(roi) < 100:  # Debe ser oscuro
+                    marcadores.append((x, y, w, h))
+
+    if mostrar:
+        img_debug = img.copy()
+        for m in marcadores:
+            cv2.rectangle(img_debug, (m[0], m[1]), (m[0]+m[2], m[1]+m[3]), (0,0,255), 2)
+        plot_image(img_debug, "4. Marcadores detectados", False)
+
+    # Filtrar marcadores en la parte inferior de la imagen (último 25% de la altura)
+    altura_imagen = img.shape[0]
+    umbral_y = altura_imagen * 0.75  # Solo considerar marcadores en el último 25%
+    marcadores_inferiores = [m for m in marcadores if m[1] > umbral_y]
+
+    if len(marcadores_inferiores) < 4:
+        print(f"No se encontraron suficientes marcadores en la región inferior: {len(marcadores_inferiores)}")
+        return None
+
+    # Ordenar marcadores por coordenada x
+    marcadores_inferiores.sort(key=lambda m: m[0])
+    
+    # Identificar los 4 marcadores que forman un rectángulo
+    marcadores_izq = sorted(marcadores_inferiores[:2], key=lambda x: x[1])  # Los 2 marcadores más a la izquierda
+    marcadores_der = sorted(marcadores_inferiores[-2:], key=lambda x: x[1])  # Los 2 marcadores más a la derecha
+    
+    # Calcular región del código de barras
+    x_min = min(m[0] + m[2] for m in marcadores_izq)  # Después del marcador izquierdo
+    x_max = max(m[0] for m in marcadores_der)  # Antes del marcador derecho
+    y_min = min(min(m[1] for m in marcadores_izq), min(m[1] for m in marcadores_der))  # El más alto
+    y_max = max(max(m[1] + m[3] for m in marcadores_izq), max(m[1] + m[3] for m in marcadores_der))  # El más bajo
+
+    if mostrar:
+        img_region = img.copy()
+        cv2.rectangle(img_region, (x_min, y_min), (x_max, y_max), (0,255,0), 2)
+        plot_image(img_region, "5. Región del código de barras", False)
+
+    return (x_min, y_min, x_max - x_min, y_max - y_min)
+
+def procesar_codigo_barras_con_marcadores(ruta_imagen, mostrar_resultados=True):
+    img = cargar_imagen(ruta_imagen)
+    if img is None:
+        print("Error al cargar la imagen.")
+        return None
+
+    if mostrar_resultados:
+        plot_image(img, "0. Imagen original", False)
+
+    region = detectar_marcadores_codigo_barras(img, mostrar=mostrar_resultados)
+    if region is None:
+        return None
+
+    x, y, w, h = region
+    roi = img[y:y+h, x:x+w]
+
+    # Mejora de contraste y calidad
+    # Convertir a escala de grises
+    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    
+    # Redimensionar para mejor lectura (2x más grande)
+    height, width = gray.shape[:2]
+    roi_resized = cv2.resize(gray, (width*2, height*2), 
+                           interpolation=cv2.INTER_CUBIC)
+    
+    # Mejorar contraste
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(16,16))
+    roi_final = clahe.apply(roi_resized)
+    
+    # Convertir de nuevo a BGR para mantener consistencia
+    roi_final = cv2.cvtColor(roi_final, cv2.COLOR_GRAY2BGR)
+
+    if mostrar_resultados:
+        plot_image(roi_final, "6. Código de barras procesado y mejorado", False)
+
+    return roi_final
+
 if __name__ == "__main__":
     # Ejemplo de uso
     ruta_imagen = "C:/Users/valde/Desktop/image-recognition/assets/image.png"
     #procesar_imagen_con_marcadores(ruta_imagen)
 
-    detectar_qr_con_marcadores(ruta_imagen)
+    procesar_qr_con_marcadores(ruta_imagen)
+
+    #procesar_codigo_barras_con_marcadores(ruta_imagen)
