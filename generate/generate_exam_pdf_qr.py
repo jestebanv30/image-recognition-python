@@ -1,8 +1,15 @@
+import sys
+import os
+
+# Agregar el directorio raíz al path de Python
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root_dir)
+
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 import qrcode
-import os
+from models.formatos_models import obtener_formato_por_grado
 
 def draw_reference_markers(c, x, y, width, height):
     
@@ -37,7 +44,13 @@ def draw_qr_markers(c, x, y, width, height):
     c.rect(x - marker_size - margin, y + height + margin, marker_size, marker_size, stroke=0, fill=1)  # Superior izquierda
     c.rect(x + width + margin, y + height + margin, marker_size, marker_size, stroke=0, fill=1)  # Superior derecha
 
-def generate_exam_pdf(student_name, identification, grado, curso, institution, output_pdf, answer_sheet_img, logo_img):
+def generate_exam_pdf(student_name, identification, grado, curso, institution, output_pdf, logo_img):
+    # Obtener información del formato según el grado
+    formato_info = obtener_formato_por_grado(grado)
+    answer_sheet_img = formato_info["imagen"]
+    ancho_img = formato_info["dimensiones"]["ancho"]
+    alto_img = formato_info["dimensiones"]["alto"]
+
     # Verificar si existe el directorio assets
     if logo_img and not os.path.exists(os.path.dirname(logo_img)):
         print(f"El directorio {os.path.dirname(logo_img)} no existe")
@@ -49,6 +62,31 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
     # Crear un recuadro para el encabezado
     header_height = 100
     c.rect(50, height - header_height - 20, width - 100, header_height, stroke=1, fill=0)
+    
+    # Generar código QR primero para ubicarlo en el encabezado
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    qr_data = f"Nombre: {student_name}, Institución: {institution}, Identificación: {identification}, Grado: {grado}, Curso: {curso}"
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    temp_qr = "temp_qr.png"
+    qr_img.save(temp_qr)
+    qr_img = ImageReader(temp_qr)
+    
+    # Ubicar QR en la esquina derecha del encabezado
+    qr_width = 80  # Tamaño reducido para el encabezado
+    qr_height = 80
+    qr_x = width - 150  # Posición desde la derecha
+    qr_y = height - 110  # Posición desde arriba
+    c.drawImage(qr_img, qr_x, qr_y, width=qr_width, height=qr_height)
+    
+    # Agregar marcadores alrededor del QR
+    draw_qr_markers(c, qr_x, qr_y, qr_width, qr_height)
     
     # Agregar logo si está disponible y el archivo existe
     if logo_img and os.path.exists(logo_img):
@@ -82,22 +120,19 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
     c.setFont("Helvetica-Bold", 12)
     c.drawString(200, height - 170, str(identification).upper() if identification else "NO PROPORCIONADA")
     
-    # Generar código QR
-    qr_data = f"Nombre: {student_name}, Institución: {institution}, Identificación: {identification}, Grado: {grado}, Curso: {curso}"
-    qr = qrcode.make(qr_data)
-    temp_qr = "temp_qr.png"
-    qr.save(temp_qr)
-    qr_img = ImageReader(temp_qr)
-    
-    # Ubicar QR en el centro de la página
-    qr_width = 90  # Reducido el tamaño del QR
-    qr_height = 90
-    qr_x = (width - qr_width) / 2  # Centrado horizontalmente
-    qr_y = height - 310  # Ubicado debajo de la información del estudiante
-    c.drawImage(qr_img, qr_x, qr_y, width=qr_width, height=qr_height)
-    
-    # Agregar marcadores alrededor del QR
-    draw_qr_markers(c, qr_x, qr_y, qr_width, qr_height)
+    # Agregar imagen de tipo de marcaciones
+    try:
+        tipo_marcaciones = ImageReader("C:/Users/valde/Desktop/image-recognition/assets/formato-grados/tipo_marcaciones.png")
+        # Ajustar dimensiones manteniendo proporción
+        marcaciones_width = 300  # Ancho reducido para que quede bien
+        marcaciones_height = marcaciones_width * (166/696)  # Mantener proporción
+        
+        # Centrar horizontalmente
+        x_marcaciones = (width - marcaciones_width) / 2
+        c.drawImage(tipo_marcaciones, x_marcaciones, height - 280, 
+                   width=marcaciones_width, height=marcaciones_height)
+    except Exception as e:
+        print(f"No se pudo cargar la imagen de tipo de marcaciones: {e}")
     
     # Agregar imagen de la hoja de respuestas si existe
     if os.path.exists(answer_sheet_img):
@@ -105,11 +140,11 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
             answer_sheet = ImageReader(answer_sheet_img)
             # Ajustamos el tamaño manteniendo la proporción original
             sheet_width = 520  # Ancho de la hoja de respuestas
-            sheet_height = sheet_width * (627/938)  # Altura proporcional
+            sheet_height = sheet_width * (alto_img / ancho_img)  # Altura proporcional usando dimensiones del formato
             
             # Calcular coordenadas para centrar la hoja más abajo
-            espacio_disponible_vertical = height - 280  # Aumentado el espacio superior
-            y_centered = ((espacio_disponible_vertical - sheet_height) / 2)  # Ajustado para bajar más
+            espacio_disponible_vertical = height - 300  # Aumentado más el espacio superior
+            y_centered = ((espacio_disponible_vertical - sheet_height) / 2) - 20  # Ajustado para bajar más
             x_centered = (width - sheet_width) / 2  # Centrado horizontal
             
             # Dibujar la hoja de respuestas centrada
@@ -135,6 +170,16 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
 # Lista de estudiantes con sus identificaciones
 estudiantes = [
     ("ACOSTA FUENTES ALAN DAVID", "1122418713", 1, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 2, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 3, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 4, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 5, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 6, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 7, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 8, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 9, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 10, 1),
+    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 11, 1),
 ]
 
 # Generar PDF para cada estudiante
@@ -145,7 +190,6 @@ for nombre, identificacion, grado, curso in estudiantes:
         grado,
         curso,
         "Institución Educativa El Carmelo", 
-        f"prueba-saber-{identificacion}.pdf",
-        "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-1.jpg",
+        f"prueba-grado-{grado}-curso-{curso}-{identificacion}.pdf",
         "C:/Users/valde/Desktop/image-recognition/assets/logo-carmelita.png"
     )
