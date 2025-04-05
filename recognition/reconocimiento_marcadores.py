@@ -169,15 +169,15 @@ def procesar_qr_con_marcadores(ruta_imagen, mostrar_resultados=True):
         print("Error: No se pudo cargar la imagen")
         return None
 
-def detectar_marcadores(img):
+def detectar_marcadores_hoja_de_respuestas(img):
     # Convertir a escala de grises
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    plot_image(gray, "1. Imagen en escala de grises")
+    #plot_image(gray, "1. Imagen en escala de grises")
     
     # Umbralización adaptativa para mejorar detección de cuadrados pequeños
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
                                  cv2.THRESH_BINARY_INV, 11, 2)
-    plot_image(thresh, "2. Umbralización adaptativa")
+    #plot_image(thresh, "2. Umbralización adaptativa")
     
     # Aplicar operaciones morfológicas para limpiar ruido
     kernel = np.ones((3,3), np.uint8)
@@ -190,7 +190,7 @@ def detectar_marcadores(img):
     # Dibujar contornos encontrados
     img_contours = img.copy()
     cv2.drawContours(img_contours, contours, -1, (0,255,0), 2)
-    plot_image(img_contours, "3. Contornos detectados", False)
+    #plot_image(img_contours, "3. Contornos detectados", False)
     
     # Filtrar contornos cuadrados pequeños
     marcadores = []
@@ -214,7 +214,7 @@ def detectar_marcadores(img):
                     marcadores.append((x, y, w, h))
                     cv2.rectangle(img_squares, (x,y), (x+w,y+h), (0,0,255), 2)
     
-    plot_image(img_squares, "4. Cuadrados detectados", False)
+    #plot_image(img_squares, "4. Cuadrados detectados", False)
     
     # Separar marcadores izquierdos y derechos
     marcadores.sort(key=lambda x: x[0])  # Ordenar por coordenada x
@@ -239,7 +239,7 @@ def detectar_marcadores(img):
         # Dibujar región detectada
         img_region = img.copy()
         cv2.rectangle(img_region, (x_min,y_min), (x_max,y_max), (255,0,0), 2)
-        plot_image(img_region, "5. Región detectada", False)
+        #plot_image(img_region, "5. Región detectada", False)
         
         return (x_min, y_min, x_max - x_min, y_max - y_min)
     else:
@@ -247,13 +247,13 @@ def detectar_marcadores(img):
     
     return None
 
-def procesar_imagen_con_marcadores(ruta_imagen, mostrar_resultados=True):
+def procesar_hoja_de_respuestas_con_marcadores(ruta_imagen, mostrar_resultados=True):
     img = cargar_imagen(ruta_imagen)
     
     if img is not None:
-        plot_image(img, "0. Imagen original", False)
+        #plot_image(img, "0. Imagen original", False)
         # Detectar región entre marcadores
-        region = detectar_marcadores(img)
+        region = detectar_marcadores_hoja_de_respuestas(img)
         
         if region:
             x, y, w, h = region
@@ -272,7 +272,7 @@ def procesar_imagen_con_marcadores(ruta_imagen, mostrar_resultados=True):
             if mostrar_resultados:
                 # Mostrar resultados
                 cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
-                plot_image(img, "6. Imagen con región detectada", False)
+                #plot_image(img, "6. Imagen con región detectada", False)
                 plot_image(roi_estandarizada, "7. Región de interés estandarizada", False)
             
             return roi_estandarizada

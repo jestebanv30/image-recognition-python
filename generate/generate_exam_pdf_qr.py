@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 
 # Agregar el directorio raíz al path de Python
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -106,8 +107,11 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
     c.setFont("Helvetica", 12)
     c.drawCentredString(text_x, height - 65, institution)
     c.setFont("Helvetica", 10)
-    c.drawCentredString(text_x, height - 80, f"Simulacro Saber {grado}° Curso {curso}")
-    c.drawCentredString(text_x, height - 95, f"Abril 2 de 2025")
+    c.drawCentredString(text_x, height - 80, f"Prueba de Mejoramiento Institucional Por Periodo")
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(text_x, height - 95, f"Grado {grado}° Curso {curso}")
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(text_x, height - 110, f"Abril 4 de 2025")
 
     # Agregar nombre e identificación del estudiante
     c.setFont("Helvetica", 12)
@@ -167,29 +171,25 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
     
     print(f"PDF generado: {output_pdf}")
 
-# Lista de estudiantes con sus identificaciones
-estudiantes = [
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 1, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 2, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 3, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 4, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 5, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 6, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 7, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 8, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 9, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 10, 1),
-    ("ACOSTA FUENTES ALAN DAVID", "1122418713", 11, 1),
-]
+# Cargar datos de estudiantes desde el archivo JSON
+json_path = "C:/Users/valde/Desktop/image-recognition/generate/estudiantes.json"
+with open(json_path, 'r', encoding='utf-8') as f:
+    data = json.load(f)
+
+# Crear directorio para los exámenes si no existe
+output_dir = "C:/Users/valde/Desktop/image-recognition/generate/nuevas_pruebas"
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 # Generar PDF para cada estudiante
-for nombre, identificacion, grado, curso in estudiantes:
+for estudiante in data['estudiantes']:
+    output_pdf = os.path.join(output_dir, f"prueba-grado-{estudiante['grado']}-curso-{estudiante['curso']}-{estudiante['identificacion']}.pdf")
     generate_exam_pdf(
-        nombre,
-        identificacion,
-        grado,
-        curso,
-        "Institución Educativa El Carmelo", 
-        f"prueba-grado-{grado}-curso-{curso}-{identificacion}.pdf",
+        estudiante['nombre_completo'],
+        estudiante['identificacion'],
+        estudiante['grado'],
+        estudiante['curso'],
+        "Institución Educativa El Carmelo",
+        output_pdf,
         "C:/Users/valde/Desktop/image-recognition/assets/logo-carmelita.png"
     )

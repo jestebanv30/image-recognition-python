@@ -1,7 +1,7 @@
 
 import cv2
 import numpy as np
-from reconocimiento_marcadores import procesar_imagen_con_marcadores
+from reconocimiento_marcadores import procesar_hoja_de_respuestas_con_marcadores
 
 def plot_image(img, titulo="Imagen", grayscale=True):
     try:
@@ -43,7 +43,7 @@ def agrupar_filas_horizontales(columna, tolerancia_y=20, min_opciones=3):
     return filas
 
 def detectar_respuestas_estudiante(ruta_imagen, formato_columnas):
-    roi = procesar_imagen_con_marcadores(ruta_imagen, mostrar_resultados=False)
+    roi = procesar_hoja_de_respuestas_con_marcadores(ruta_imagen, mostrar_resultados=False)
     if roi is None:
         print("No se pudo detectar la región de la hoja.")
         return
@@ -54,12 +54,12 @@ def detectar_respuestas_estudiante(ruta_imagen, formato_columnas):
     circulos = cv2.HoughCircles(
         gris,
         cv2.HOUGH_GRADIENT,
-        dp=1,
-        minDist=8,
-        param1=40,
-        param2=20,
+        dp=1.02,
+        minDist=7,
+        param1=40, #45
+        param2=20, #18
         minRadius=6,
-        maxRadius=13
+        maxRadius=16
     )
 
     respuestas = {}
@@ -83,7 +83,7 @@ def detectar_respuestas_estudiante(ruta_imagen, formato_columnas):
                 total_pixels = circle_roi.size
                 dark_pixels = np.sum(circle_roi < 130)
                 density = dark_pixels / total_pixels
-                if density > 0.20:
+                if density > 0.14:
                     marcada = opciones[i]
                     cv2.circle(roi_color, (cx, cy), r, (0, 255, 0), 2)
                 else:

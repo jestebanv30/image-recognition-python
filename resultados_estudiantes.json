@@ -3,20 +3,11 @@
         "nombre": "ACOSTA FUENTES ALAN DAVID",
         "identificacion": "1122418713",
         "institucion": "Institución Educativa El Carmelo",
-        "grado": "1",
+        "grado": "2",
         "curso": "1",
         "respuestas": {
-            "columna_1": [
-                "Círculo 11C está rellenado",
-                "Círculo 12A está rellenado"
-            ],
-            "columna_2": [
-                "Círculo 3B está rellenado",
-                "Círculo 3C está rellenado",
-                "Círculo 7B está rellenado",
-                "Círculo 11B está rellenado",
-                "Círculo 12C está rellenado"
-            ],
+            "columna_1": [],
+            "columna_2": [],
             "columna_3": [],
             "columna_4": [],
             "columna_5": []

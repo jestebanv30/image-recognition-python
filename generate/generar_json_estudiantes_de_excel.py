@@ -12,13 +12,18 @@ def leer_estudiantes(ruta_archivo):
         
         for _, row in df.iterrows():
             # Combinar nombres y apellidos
-            nombre_completo = f"{row['NOMBRES']} {row['APELLIDOS']}".title()
+            nombre_completo = f"{row['NOMBRES']} {row['APELLIDOS']}".upper()
+            
+            # Convertir a entero manejando valores NaN
+            grado = int(row['GRADO']) if pd.notna(row['GRADO']) else 0
+            curso = int(row['CURSO']) if pd.notna(row['CURSO']) else 0
+            identificacion = int(row['IDENTIFICACIÓN']) if pd.notna(row['IDENTIFICACIÓN']) else 0
             
             estudiante = {
                 'nombre_completo': nombre_completo,
-                'grado': row['GRADO'],
-                'curso': row['CURSO'],
-                'identificacion': row['IDENTIFICACIÓN']
+                'grado': grado,
+                'curso': curso,
+                'identificacion': identificacion
             }
             estudiantes.append(estudiante)
             
