@@ -177,7 +177,7 @@ with open(json_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 # Crear directorio para los exámenes si no existe
-output_dir = "C:/Users/valde/Desktop/image-recognition/generate/nuevas_pruebas"
+output_dir = "C:/Users/valde/Desktop/image-recognition/generate/nuevas_pruebas_grado5"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -190,6 +190,6 @@ for estudiante in data['estudiantes']:
         estudiante['grado'],
         estudiante['curso'],
         "Institución Educativa El Carmelo",
-        output_pdf,
+        output_pdf, 
         "C:/Users/valde/Desktop/image-recognition/assets/logo-carmelita.png"
     )
