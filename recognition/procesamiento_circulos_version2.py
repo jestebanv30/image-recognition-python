@@ -1,7 +1,7 @@
 
 import cv2
 import numpy as np
-from reconocimiento_marcadores import procesar_hoja_de_respuestas_con_marcadores
+from recognition.reconocimiento_marcadores import procesar_hoja_de_respuestas_con_marcadores
 
 def plot_image(img, titulo="Imagen", grayscale=True):
     try:
@@ -54,11 +54,11 @@ def detectar_respuestas_estudiante(ruta_imagen, formato_columnas):
     circulos = cv2.HoughCircles(
         gris,
         cv2.HOUGH_GRADIENT,
-        dp=1.02,
-        minDist=7,
+        dp=1.002,
+        minDist=6,
         param1=40, #45
         param2=20, #18
-        minRadius=6,
+        minRadius=7,
         maxRadius=16
     )
 
@@ -100,7 +100,7 @@ def detectar_respuestas_estudiante(ruta_imagen, formato_columnas):
 # Prueba
 if __name__ == "__main__":
     ruta = "C:/Users/valde/Desktop/image-recognition/assets/image.png"
-    formato = [15, 15, 15, 13]
+    formato = [20, 20, 20, 20]
     resultado = detectar_respuestas_estudiante(ruta, formato)
     print("\nRespuestas detectadas:")
     print(resultado)

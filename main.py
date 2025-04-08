@@ -1,6 +1,6 @@
 import json
 from recognition.lectura_qr_estudiante import leer_qr_desde_imagen
-from recognition.procesamiento_circulos import procesar_circulos
+from recognition.procesamiento_circulos_version2 import detectar_respuestas_estudiante
 
 def extraer_info_dict(info_qr):
     # Convierte el texto del QR a un diccionario
@@ -31,7 +31,7 @@ def main():
 
         datos_estudiante = extraer_info_dict(info_qr)
 
-        respuestas = procesar_circulos(ruta)
+        respuestas = detectar_respuestas_estudiante(ruta, formato_columnas=[20, 20, 20, 20])
         if respuestas is None:
             respuestas = {}
 

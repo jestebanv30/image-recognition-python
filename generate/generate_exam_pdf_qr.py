@@ -45,7 +45,9 @@ def draw_qr_markers(c, x, y, width, height):
     c.rect(x - marker_size - margin, y + height + margin, marker_size, marker_size, stroke=0, fill=1)  # Superior izquierda
     c.rect(x + width + margin, y + height + margin, marker_size, marker_size, stroke=0, fill=1)  # Superior derecha
 
-def generate_exam_pdf(student_name, identification, grado, curso, institution, output_pdf, logo_img):
+def generate_exam_page(c, student_name, identification, grado, curso, institution, logo_img):
+    width, height = letter
+    
     # Obtener información del formato según el grado
     formato_info = obtener_formato_por_grado(grado)
     answer_sheet_img = formato_info["imagen"]
@@ -56,9 +58,6 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
     if logo_img and not os.path.exists(os.path.dirname(logo_img)):
         print(f"El directorio {os.path.dirname(logo_img)} no existe")
         logo_img = None
-    
-    c = canvas.Canvas(output_pdf, pagesize=letter)
-    width, height = letter
     
     # Crear un recuadro para el encabezado
     header_height = 100
@@ -161,15 +160,10 @@ def generate_exam_pdf(student_name, identification, grado, curso, institution, o
             print(f"No se pudo cargar la hoja de respuestas: {e}")
     else:
         print(f"No se encontró el archivo de hoja de respuestas: {answer_sheet_img}")
-    
-    # Guardar el PDF
-    c.save()
-    
+
     # Eliminar archivo temporal del QR si existe
     if os.path.exists(temp_qr):
         os.remove(temp_qr)
-    
-    print(f"PDF generado: {output_pdf}")
 
 # Cargar datos de estudiantes desde el archivo JSON
 json_path = "C:/Users/valde/Desktop/image-recognition/generate/estudiantes.json"
@@ -177,19 +171,25 @@ with open(json_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 # Crear directorio para los exámenes si no existe
-output_dir = "C:/Users/valde/Desktop/image-recognition/generate/nuevas_pruebas_grado5"
+output_dir = "C:/Users/valde/Desktop/image-recognition/generate/actualizacion_pruebas_el_carmelo"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-# Generar PDF para cada estudiante
+# Generar un solo PDF con todas las páginas
+output_pdf = os.path.join(output_dir, "pruebas_quinto_grado.pdf")
+c = canvas.Canvas(output_pdf, pagesize=letter)
+
 for estudiante in data['estudiantes']:
-    output_pdf = os.path.join(output_dir, f"prueba-grado-{estudiante['grado']}-curso-{estudiante['curso']}-{estudiante['identificacion']}.pdf")
-    generate_exam_pdf(
+    generate_exam_page(
+        c,
         estudiante['nombre_completo'],
         estudiante['identificacion'],
         estudiante['grado'],
         estudiante['curso'],
         "Institución Educativa El Carmelo",
-        output_pdf, 
         "C:/Users/valde/Desktop/image-recognition/assets/logo-carmelita.png"
     )
+    c.showPage()  # Agregar nueva página
+
+c.save()  # Guardar el PDF completo
+print(f"PDF generado con todas las pruebas: {output_pdf}")

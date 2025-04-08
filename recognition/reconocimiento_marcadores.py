@@ -64,15 +64,15 @@ def detectar_qr_con_marcadores(img):
     
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        # Ajustar el rango de área para detectar marcadores más pequeños
-        if area > area_imagen * 0.00005 and area < area_imagen * 0.005:  # Reducidos los umbrales
+        # Ajustar el rango de área para detectar marcadores más pequeños y más grandes
+        if area > area_imagen * 0.00001 and area < area_imagen * 0.01:  # Ampliado el rango
             x, y, w, h = cv2.boundingRect(cnt)
             aspect_ratio = float(w)/h
-            # Verificar si es aproximadamente cuadrado
-            if 0.8 <= aspect_ratio <= 1.2:
-                # Verificar si es negro (promedio de intensidad bajo)
+            # Verificar si es aproximadamente cuadrado con mayor tolerancia
+            if 0.7 <= aspect_ratio <= 1.3:  # Aumentada la tolerancia
+                # Verificar si es negro (promedio de intensidad bajo) con umbral más alto
                 roi = gray[y:y+h, x:x+w]
-                if np.mean(roi) < 100:
+                if np.mean(roi) < 120:  # Aumentado el umbral
                     marcadores.append((x, y, w, h))
                     cv2.rectangle(img_squares, (x,y), (x+w,y+h), (0,0,255), 2)
     
@@ -98,10 +98,10 @@ def detectar_qr_con_marcadores(img):
                                 dist = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
                                 distancias.append(dist)
                         
-                        # Si las distancias son similares (tolerancia del 10%)
+                        # Si las distancias son similares (tolerancia del 20%)
                         distancias.sort()
-                        if len(set([round(d, -1) for d in distancias[:4]])) == 1 and \
-                           abs(distancias[4] - distancias[5]) < distancias[4] * 0.1:
+                        if len(set([round(d, -1) for d in distancias[:4]])) <= 1 and \
+                           abs(distancias[4] - distancias[5]) < distancias[4] * 0.1:  # Aumentada tolerancia
                             marcadores_validos = [m1, m2, m3, m4]
                             break
                     if marcadores_validos:
@@ -115,11 +115,20 @@ def detectar_qr_con_marcadores(img):
         # Ordenar marcadores por posición
         marcadores_validos.sort(key=lambda x: (x[1], x[0]))  # Ordenar primero por y, luego por x
         
-        # Obtener límites del QR
-        x_min = min(m[0] for m in marcadores_validos)
-        x_max = max(m[0] + m[2] for m in marcadores_validos)
-        y_min = min(m[1] for m in marcadores_validos)
-        y_max = max(m[1] + m[3] for m in marcadores_validos)
+        # Obtener límites del QR - ajustado para tomar el área interna
+        x_min = min(m[0] + m[2] for m in marcadores_validos[:2])  # Borde derecho de marcadores izquierdos
+        x_max = max(m[0] for m in marcadores_validos[2:])  # Borde izquierdo de marcadores derechos
+        y_min = min(m[1] + m[3] for m in marcadores_validos[:2])  # Borde inferior de marcadores superiores
+        y_max = max(m[1] for m in marcadores_validos[2:])  # Borde superior de marcadores inferiores
+        
+        # Añadir un pequeño margen interno (5% del ancho/alto)
+        margin_x = int((x_max - x_min) * 0.05)
+        margin_y = int((y_max - y_min) * 0.05)
+        
+        x_min += margin_x
+        x_max -= margin_x
+        y_min += margin_y
+        y_max -= margin_y
         
         return (x_min, y_min, x_max - x_min, y_max - y_min)
     else:
@@ -136,18 +145,34 @@ def procesar_qr_con_marcadores(ruta_imagen, mostrar_resultados=True):
         
         if region:
             x, y, w, h = region
-            # Extraer región de interés
-            roi = img[y:y+h, x:x+w]
+            # Extraer región de interés con un margen adicional
+            margin = int(min(w,h) * 0.1) # 10% de margen
+            y1 = max(0, y - margin)
+            y2 = min(img.shape[0], y + h + margin)
+            x1 = max(0, x - margin)
+            x2 = min(img.shape[1], x + w + margin)
+            roi = img[y1:y2, x1:x2]
             
             # Dimensiones estándar deseadas - aumentadas para mejor resolución
-            ancho_estandar = 400  # Aumentado de 150 a 400 para mejor resolución
+            ancho_estandar = 400  # Aumentado para mejor resolución
             # Mantener la relación de aspecto
-            relacion_aspecto = h / w
+            relacion_aspecto = roi.shape[0] / roi.shape[1]
             alto_estandar = int(ancho_estandar * relacion_aspecto)
             
-            # Redimensionar usando INTER_CUBIC para mejor calidad
+            # Redimensionar usando INTER_LANCZOS4 para mejor calidad
             roi_estandarizada = cv2.resize(roi, (ancho_estandar, alto_estandar), 
-                                         interpolation=cv2.INTER_CUBIC)
+                                         interpolation=cv2.INTER_LANCZOS4)
+            
+            # Mejorar contraste
+            lab = cv2.cvtColor(roi_estandarizada, cv2.COLOR_BGR2LAB)
+            l, a, b = cv2.split(lab)
+            clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+            l = clahe.apply(l)
+            lab = cv2.merge((l,a,b))
+            roi_estandarizada = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+            
+            # Reducir ruido
+            roi_estandarizada = cv2.fastNlMeansDenoisingColored(roi_estandarizada, None, 10, 10, 7, 21)
             
             # Aplicar mejora de nitidez
             kernel_sharpening = np.array([[-1,-1,-1], 
@@ -157,7 +182,7 @@ def procesar_qr_con_marcadores(ruta_imagen, mostrar_resultados=True):
             
             if mostrar_resultados:
                 # Mostrar resultados
-                cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
+                cv2.rectangle(img, (x1,y1), (x2,y2), (0,255,0), 2)
                 plot_image(img, "6. Imagen con región QR detectada", False)
                 plot_image(roi_estandarizada, "7. Región QR estandarizada", False)
             

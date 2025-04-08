@@ -30,19 +30,19 @@
     "grado": 4,
     "formato": [24, 24, 24, 24, 24],
     "dimensiones": {
-      "ancho": 1124,
-      "alto": 868
+      "ancho": 1112,
+      "alto": 869
     },
-    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-4.png"
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-4-5.png"
   },
   {
     "grado": 5,
     "formato": [24, 24, 24, 24, 24],
     "dimensiones": {
-      "ancho": 1116,
-      "alto": 867
+      "ancho": 1112,
+      "alto": 869
     },
-    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-5.png"
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-4-5.png"
   },
   {
     "grado": 6,
