@@ -1,0 +1,101 @@
+[
+  {
+    "grado": 1,
+    "formato": [15, 15, 15, 13],
+    "dimensiones": {
+      "ancho": 967,
+      "alto": 640
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-1.png"
+  },
+  {
+    "grado": 2,
+    "formato": [15, 15, 15, 13],
+    "dimensiones": {
+      "ancho": 1094,
+      "alto": 629
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-2.png"
+  },
+  {
+    "grado": 3,
+    "formato": [17, 17, 17, 17, 15],
+    "dimensiones": {
+      "ancho": 1327,
+      "alto": 642
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-3.png"
+  },
+  {
+    "grado": 4,
+    "formato": [24, 24, 24, 24, 24],
+    "dimensiones": {
+      "ancho": 1124,
+      "alto": 868
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-4.png"
+  },
+  {
+    "grado": 5,
+    "formato": [24, 24, 24, 24, 24],
+    "dimensiones": {
+      "ancho": 1116,
+      "alto": 867
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-5.png"
+  },
+  {
+    "grado": 6,
+    "formato": [24, 24, 24, 24, 24],
+    "dimensiones": {
+      "ancho": 1379,
+      "alto": 988
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados/grado-6-7-8-9.png"
+  },
+  {
+    "grado": 7,
+    "formato": [24, 24, 24, 24, 24],
+    "dimensiones": {
+      "ancho": 1357,
+      "alto": 980
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados-version2/grado-7-8-9.png"
+  },
+  {
+    "grado": 8,
+    "formato": [24, 24, 24, 24, 24],
+    "dimensiones": {
+      "ancho": 1357,
+      "alto": 980
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados-version2/grado-7-8-9.png"
+  },
+  {
+    "grado": 9,
+    "formato": [24, 24, 24, 24, 24],
+    "dimensiones": {
+      "ancho": 1357,
+      "alto": 980
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados-version2/grado-7-8-9.png"
+  },
+  {
+    "grado": 10,
+    "formato": [27, 27, 27, 27, 27],
+    "dimensiones": {
+      "ancho": 1155,
+      "alto": 945
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados-version2/grado-10.png"
+  },
+  {
+    "grado": 11,
+    "formato": [27, 27, 27, 27, 27],
+    "dimensiones": {
+      "ancho": 1157,
+      "alto": 932
+    },
+    "imagen": "C:/Users/valde/Desktop/image-recognition/assets/formato-grados-version2/grado-11.png"
+  }
+]
