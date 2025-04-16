@@ -12,6 +12,8 @@ __pycache__/
 *.jpg
 *.jpeg
 *.pdf
+*.json
+*.xlsx
 
 # Ignorar dependencias si las manejas con un archivo de requerimientos
 dependencies.txt

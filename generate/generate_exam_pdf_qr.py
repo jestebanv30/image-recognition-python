@@ -176,7 +176,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Generar un solo PDF con todas las páginas
-output_pdf = os.path.join(output_dir, "pruebas_quinto_grado.pdf")
+output_pdf = os.path.join(output_dir, "estudiantes.pdf")
 c = canvas.Canvas(output_pdf, pagesize=letter)
 
 for estudiante in data['estudiantes']:
