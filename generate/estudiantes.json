@@ -1,28 +1,10 @@
 {
-  "total_estudiantes": 130,
+  "total_estudiantes": 140,
   "estudiantes": [
     {
-      "nombre_completo": "GEIMAR BENJUMEA GIL",
-      "grado": 2,
-      "curso": 2,
-      "identificacion": ""
-    },
-    {
-      "nombre_completo": "RAFAEL RICARDO GONZALES ARAUJO",
-      "grado": 7,
-      "curso": 5,
-      "identificacion": ""
-    },
-    {
-      "nombre_completo": "SHELIANA MARCELA GONZALES ARAUJO",
-      "grado": 6,
-      "curso": 2,
-      "identificacion": ""
-    },
-    {
-      "nombre_completo": "ELENA SOFIA BOLAÑO VILLAZÓN",
-      "grado": 6,
-      "curso": 2,
+      "nombre_completo": "",
+      "grado": 11,
+      "curso": "",
       "identificacion": ""
     }
   ]

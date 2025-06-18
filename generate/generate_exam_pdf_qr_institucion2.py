@@ -92,9 +92,9 @@ def generate_exam_page(c, student_name, identification, grado, curso, institutio
     if logo_img and os.path.exists(logo_img):
         try:
             logo = ImageReader(logo_img)
-            logo_width = 65
-            logo_height = logo_width * (599/416)
-            c.drawImage(logo, 60, height - 115, width=logo_width, height=logo_height, mask='auto')
+            logo_width = 90 # el carmelo = 65
+            logo_height = logo_width * (300/274) #el carmilo = 599/416
+            c.drawImage(logo, 60, height - 130, width=logo_width, height=logo_height, mask='auto') # el carmelo = height - 115
         except Exception as e:
             print(f"No se pudo cargar el logo: {e}")
     
@@ -109,7 +109,7 @@ def generate_exam_page(c, student_name, identification, grado, curso, institutio
     c.setFont("Helvetica", 10)
     c.drawCentredString(text_x, height - 95, f"Grado {grado}° Curso {curso}")
     c.setFont("Helvetica", 8)
-    c.drawCentredString(text_x, height - 110, f"Abril 4 de 2025")
+    c.drawCentredString(text_x, height - 110, f"Miércoles 18 de Junio de 2025")
 
     # Agregar nombre e identificación del estudiante
     c.setFont("Helvetica", 12)
@@ -162,12 +162,12 @@ with open(json_path, 'r', encoding='utf-8') as f:
     data = json.load(f)
 
 # Crear directorio para los exámenes si no existe
-output_dir = "C:/Users/valde/Desktop/image-recognition/generate/pruebas_formato"
+output_dir = "C:/Users/valde/Desktop/image-recognition/generate/urbana-mixta/grados_enblanco"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Generar un solo PDF con todas las páginas
-output_pdf = os.path.join(output_dir, "pruebas_formatos-enblanco.pdf")
+output_pdf = os.path.join(output_dir, "pruebas-urbana-mixta-grado-11-enblanco.pdf")
 c = canvas.Canvas(output_pdf, pagesize=letter)
 
 for estudiante in data['estudiantes']:
@@ -177,8 +177,8 @@ for estudiante in data['estudiantes']:
         estudiante['identificacion'],
         estudiante['grado'],
         estudiante['curso'],
-        "Institución Educativa Remedios Solano",
-        "C:/Users/valde/Desktop/image-recognition/assets/logo-remedios-solano.png"
+        "Institución Educativa Urbana Mixta No.1",
+        "C:/Users/valde/Desktop/image-recognition/assets/urbana-mixta-logo1.png"
     )
     c.showPage()  # Agregar nueva página
 

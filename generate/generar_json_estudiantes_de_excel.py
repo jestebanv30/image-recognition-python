@@ -11,13 +11,14 @@ def leer_estudiantes(ruta_archivo):
         estudiantes = []
         
         for _, row in df.iterrows():
-            # Combinar nombres y apellidos
-            nombre_completo = f"{row['NOMBRES']} {row['APELLIDOS']}".upper()
+            # Obtener el nombre completo directamente de la columna
+            nombre_completo = str(row['APELLIDOS Y NOMBRES']).upper()
             
             # Convertir a entero manejando valores NaN
             grado = int(row['GRADO']) if pd.notna(row['GRADO']) else 0
             curso = int(row['CURSO']) if pd.notna(row['CURSO']) else 0
-            identificacion = int(row['IDENTIFICACIÓN']) if pd.notna(row['IDENTIFICACIÓN']) else 0
+            # Convertir identificación a string en lugar de int
+            identificacion = str(row['IDENTIFICACIÓN']) if pd.notna(row['IDENTIFICACIÓN']) else ""
             
             estudiante = {
                 'nombre_completo': nombre_completo,
@@ -55,5 +56,5 @@ def main(ruta_excel):
         print(f"\nArchivo JSON generado en: {os.path.abspath(ruta_json)}")
 
 if __name__ == "__main__":
-    ruta_excel = "C:/Users/valde/Desktop/image-recognition/estudiantes.xlsx"
+    ruta_excel = "C:/Users/valde/Desktop/image-recognition/estudiantes-urbana-generar-pdf.xlsx"
     main(ruta_excel)
