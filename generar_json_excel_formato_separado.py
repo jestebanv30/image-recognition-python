@@ -2,38 +2,36 @@ import pandas as pd
 import json
 
 # Ruta al Excel que contiene los estudiantes  
-EXCEL_PATH = r"C:/Users/valde/Desktop/image-recognition/estudiantes-rural.xlsx"
+EXCEL_PATH = r"C:/Users/valde/Desktop/image-recognition/estudiantes-elcarmelo2.xlsx"
 
 # Nombre de la institución
-INSTITUCION = "Institución Educativa Manuel Antonio Davila"
+INSTITUCION = "Institución Educativa El Carmelo"
 
 # Número de preguntas a generar
-TOTAL_PREGUNTAS = 254
-#GRADO_FINAL = "11"
-#CURSO_FINAL = "1"
+TOTAL_PREGUNTAS = 58
 
 def generar_estructura_estudiantes(df):
     estudiantes = []
     for _, row in df.iterrows():
-        salon = str(row["SALON"])
-        
-        if len(salon) == 4:  # ej. 1001 o 1101
-            grado = salon[:2]
-            curso = salon[2:]
-        else:  # ej. 601 o 705
-            grado = salon[0]
-            curso = salon[1:]
-        
-        # Eliminar ceros a la izquierda del curso
-        curso = str(int(curso))
-        
+        # Unir apellidos y nombres
+        nombre_completo = f"{str(row['APELLIDOS']).strip()} {str(row['NOMBRES']).strip()}"
+
+        # Obtener grado y curso directamente
+        grado = str(row["GRADO"]).strip()
+        curso = str(row["CURSO"]).strip()
+        # Eliminar ceros a la izquierda del curso si es numérico
+        try:
+            curso = str(int(curso))
+        except:
+            curso = curso
+
         # Generar diccionario de respuestas vacías del 1 al TOTAL_PREGUNTAS
         respuestas_vacias = {str(i): "" for i in range(1, TOTAL_PREGUNTAS + 1)}
         
         estudiante = {
             "archivo": "",  # Puede ser asignado luego
-            "nombre": str(row["NOMBRE"]).strip(),
-            "identificacion": str(row["IDENTIFICACION"]).strip(),
+            "nombre": nombre_completo,
+            "identificacion": str(row["IDENTIFICACIÓN"]).strip(),
             "institucion": INSTITUCION,
             "grado": grado,
             "curso": curso,
@@ -48,7 +46,8 @@ def generar_json_desde_excel(excel_path, output_json="estudiantes_manual.json"):
     
     todos_los_estudiantes = []
     for sheet_name, df in all_dfs.items():
-        if {"NOMBRE", "SALON", "IDENTIFICACION"}.issubset(df.columns):
+        columnas_esperadas = {"APELLIDOS", "NOMBRES", "GRADO", "CURSO", "IDENTIFICACIÓN"}
+        if columnas_esperadas.issubset(df.columns):
             estudiantes = generar_estructura_estudiantes(df)
             todos_los_estudiantes.extend(estudiantes)
         else:

@@ -56,5 +56,5 @@ def main(ruta_excel):
         print(f"\nArchivo JSON generado en: {os.path.abspath(ruta_json)}")
 
 if __name__ == "__main__":
-    ruta_excel = "C:/Users/valde/Desktop/image-recognition/estudiantes-urbana-generar-pdf.xlsx"
+    ruta_excel = "C:/Users/valde/Desktop/image-recognition/estudiantes-generar-pdf.xlsx"
     main(ruta_excel)
